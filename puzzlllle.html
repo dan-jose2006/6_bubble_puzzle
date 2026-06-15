@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6-Bubble Puzzle Simulator</title>
+    <meta name="description" content="An interactive Liquid Glass Logic Simulator puzzle game. Clear all numbered nodes in 6-step increments while avoiding landing on the Wall.">
+    <!-- Google Fonts: Syne (headings), Plus Jakarta Sans (UI text & buttons), Inter (rules paragraphs) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #060913;
+            --card-bg: rgba(255, 255, 255, 0.015);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.4);
+            --accent: #f43f5e;
+            --accent-glow: rgba(244, 63, 94, 0.4);
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.4);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-shine: rgba(255, 255, 255, 0.06);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient Liquid Background Blobs */
+        .bg-glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(140px);
+            opacity: 0.25;
+            pointer-events: none;
+            z-index: -1;
+            mix-blend-mode: screen;
+        }
+
+        .glow-1 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.5) 0%, rgba(30, 41, 59, 0) 70%);
+            top: -10%;
+            left: -10%;
+            animation: morphBlob1 25s ease-in-out infinite alternate;
+        }
+
+        .glow-2 {
+            width: 550px;
+            height: 550px;
+            background: radial-gradient(circle, rgba(244, 63, 94, 0.4) 0%, rgba(30, 41, 59, 0) 70%);
+            bottom: -15%;
+            right: -10%;
+            animation: morphBlob2 30s ease-in-out infinite alternate;
+        }
+
+        .glow-3 {
+            width: 380px;
+            height: 380px;
+            background: radial-gradient(circle, rgba(129, 140, 248, 0.5) 0%, rgba(30, 41, 59, 0) 70%);
+            top: 40%;
+            left: 35%;
+            transform: translate(-50%, -50%);
+            animation: morphBlob3 20s ease-in-out infinite alternate;
+        }
+
+        .glow-4 {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, rgba(30, 41, 59, 0) 70%);
+            top: 15%;
+            right: 20%;
+            animation: morphBlob4 18s ease-in-out infinite alternate;
+        }
+
+        @keyframes morphBlob1 {
+            0% {
+                border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+                transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+            100% {
+                border-radius: 70% 30% 52% 48% / 60% 40% 60% 40%;
+                transform: translate(100px, 80px) scale(1.15) rotate(180deg);
+            }
+        }
+
+        @keyframes morphBlob2 {
+            0% {
+                border-radius: 50% 50% 30% 70% / 50% 60% 40% 50%;
+                transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+            100% {
+                border-radius: 30% 70% 70% 30% / 60% 40% 60% 40%;
+                transform: translate(-120px, -80px) scale(1.2) rotate(-180deg);
+            }
+        }
+
+        @keyframes morphBlob3 {
+            0% {
+                border-radius: 60% 40% 60% 40% / 40% 60% 40% 60%;
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                border-radius: 40% 60% 30% 70% / 60% 40% 70% 30%;
+                transform: translate(60px, -100px) scale(0.85);
+            }
+        }
+
+        @keyframes morphBlob4 {
+            0% {
+                border-radius: 50% 50% 50% 50%;
+                transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+            100% {
+                border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%;
+                transform: translate(-80px, 60px) scale(1.25) rotate(90deg);
+            }
+        }
+
+        /* Glassmorphic Container System */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.035) 0%, rgba(255, 255, 255, 0.005) 100%);
+            backdrop-filter: blur(30px) saturate(210%);
+            -webkit-backdrop-filter: blur(30px) saturate(210%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 32px;
+            padding: 35px 30px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 
+                0 30px 60px -15px rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25),
+                inset 0 10px 20px rgba(255, 255, 255, 0.03),
+                0 0 100px rgba(56, 189, 248, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Splash Screen overlay style */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 100;
+            background: rgba(6, 9, 19, 0.6);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow-y: auto;
+        }
+
+        .splash-screen.splash-exit {
+            transform: scale(1.1) translateY(-30px);
+            filter: blur(25px);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .splash-glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(35px) saturate(200%);
+            -webkit-backdrop-filter: blur(35px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 36px;
+            padding: 40px 35px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 
+                0 40px 80px -20px rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35),
+                inset 0 12px 24px rgba(255, 255, 255, 0.05);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .bubble-logo {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, rgba(56, 189, 248, 0.1) 40%, rgba(129, 140, 248, 0.45) 85%);
+            border: 2px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 
+                0 15px 30px rgba(0, 0, 0, 0.4),
+                inset 0 6px 8px rgba(255, 255, 255, 0.35),
+                inset 0 -6px 12px rgba(129, 140, 248, 0.35),
+                0 0 25px rgba(56, 189, 248, 0.3);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-size: 2.3rem;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(56, 189, 248, 0.5);
+            margin-bottom: 15px;
+            animation: logoFloat 4s ease-in-out infinite;
+        }
+
+        .bubble-logo::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            width: 20px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            transform: rotate(-30deg);
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 2.5rem;
+            margin: 0 0 5px 0;
+            background: linear-gradient(135deg, #fff 0%, #38bdf8 50%, #818cf8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 20px rgba(56, 189, 248, 0.15);
+            letter-spacing: -1px;
+        }
+
+        .tagline {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--primary);
+            margin: 0 0 25px 0;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+        }
+
+        .rules-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 20px 22px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: left;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .rules-card h3 {
+            font-family: 'Syne', sans-serif;
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+            color: #f8fafc;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .rule-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .rule-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .rule-desc {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.45;
+        }
+
+        .rule-desc strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .btn-start {
+            width: 100%;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(129, 140, 248, 0.2) 100%);
+            border: 1.5px solid rgba(56, 189, 248, 0.5);
+            box-shadow: 
+                0 15px 30px rgba(56, 189, 248, 0.15),
+                inset 0 2px 3px rgba(255, 255, 255, 0.25);
+            color: #fff;
+            padding: 16px 20px;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-start:hover {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.35) 0%, rgba(129, 140, 248, 0.35) 100%);
+            border-color: #38bdf8;
+            color: #fff;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 
+                0 20px 35px rgba(56, 189, 248, 0.25),
+                inset 0 2px 3px rgba(255, 255, 255, 0.4);
+        }
+
+        .arrow-icon {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-start:hover .arrow-icon {
+            transform: translateX(4px);
+        }
+
+        /* Main Game Card Layout styling */
+        #game-card {
+            display: none;
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+            filter: blur(10px);
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #game-card.active {
+            display: flex;
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            filter: none;
+        }
+
+        .game-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.1rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+
+        .instructions {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            text-align: center;
+            line-height: 1.5;
+            max-width: 400px;
+        }
+
+        /* Stats dashboard using premium glass design */
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 12px 15px;
+            text-align: center;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .stat-box:hover {
+            background: rgba(255, 255, 255, 0.045);
+        }
+
+        .stat-box.box-moves:hover {
+            border-color: rgba(56, 189, 248, 0.45);
+            box-shadow: 
+                0 10px 20px -5px rgba(56, 189, 248, 0.15),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15);
+        }
+
+        .stat-box.box-cleared:hover {
+            border-color: rgba(16, 185, 129, 0.45);
+            box-shadow: 
+                0 10px 20px -5px rgba(16, 185, 129, 0.15),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15);
+        }
+
+        .stat-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        #stat-moves {
+            color: var(--primary);
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+        }
+
+        #stat-cleared {
+            color: var(--success);
+            text-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+        }
+
+        /* Circular Ring Container */
+        .game-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 10px 0 25px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ring-outline {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Glowing connectors animated dash */
+        .ring-flow {
+            stroke-dasharray: 10, 15;
+            animation: flowLine 5s linear infinite;
+        }
+
+        @keyframes flowLine {
+            to {
+                stroke-dashoffset: -50;
+            }
+        }
+
+        /* Bubble physical 3D glass droplet style */
+        .bubble {
+            position: absolute;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.15rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+            z-index: 10;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Specular highlight overlay for realistic 3D glass drop */
+        .bubble::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            width: 15px;
+            height: 8px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0));
+            border-radius: 50%;
+            transform: rotate(-28deg);
+            filter: blur(0.2px);
+            pointer-events: none;
+        }
+
+        /* Gentle float idle animation to make them feel suspended */
+        .bubble:not(.crossed):not(.counting) {
+            animation: floatBubble 6s ease-in-out infinite;
+        }
+
+        .bubble:nth-child(2) { animation-delay: -0.5s; animation-duration: 5.5s; }
+        .bubble:nth-child(3) { animation-delay: -1.2s; animation-duration: 6.2s; }
+        .bubble:nth-child(4) { animation-delay: -2.0s; animation-duration: 5.8s; }
+        .bubble:nth-child(5) { animation-delay: -2.8s; animation-duration: 6.5s; }
+        .bubble:nth-child(6) { animation-delay: -3.5s; animation-duration: 5.2s; }
+        .bubble:nth-child(7) { animation-delay: -4.2s; animation-duration: 6.0s; }
+
+        @keyframes floatBubble {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-4px) scale(1.02); }
+        }
+
+        /* Bubble Types */
+        .bubble.empty {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.18), rgba(56, 189, 248, 0.08) 45%, rgba(56, 189, 248, 0.38) 90%);
+            border: 1.5px solid rgba(56, 189, 248, 0.55);
+            color: #e0f2fe;
+            box-shadow: 
+                0 10px 22px rgba(0, 0, 0, 0.45),
+                inset 0 4px 6px rgba(255, 255, 255, 0.2),
+                inset 0 -4px 8px rgba(56, 189, 248, 0.25),
+                0 0 15px rgba(56, 189, 248, 0.15);
+        }
+
+        .bubble.empty:hover {
+            transform: scale(1.18) translateY(-3px) !important;
+            border-color: #38bdf8;
+            color: #fff;
+            box-shadow: 
+                0 15px 30px rgba(56, 189, 248, 0.35),
+                inset 0 4px 6px rgba(255, 255, 255, 0.35),
+                inset 0 -4px 8px rgba(56, 189, 248, 0.3),
+                0 0 25px rgba(56, 189, 248, 0.45);
+        }
+
+        .bubble.filled {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.18), rgba(244, 63, 94, 0.08) 45%, rgba(244, 63, 94, 0.45) 90%);
+            border: 1.5px solid rgba(244, 63, 94, 0.65);
+            color: #ffe4e6;
+            text-shadow: 0 0 6px rgba(244, 63, 94, 0.7);
+            box-shadow: 
+                0 10px 22px rgba(244, 63, 94, 0.25),
+                inset 0 4px 6px rgba(255, 255, 255, 0.2),
+                inset 0 -4px 8px rgba(244, 63, 94, 0.25),
+                0 0 15px rgba(244, 63, 94, 0.15);
+        }
+
+        .bubble.filled:hover {
+            transform: scale(1.12) translateY(-2px) !important;
+            border-color: #f43f5e;
+            box-shadow: 
+                0 15px 28px rgba(244, 63, 94, 0.35),
+                inset 0 4px 6px rgba(255, 255, 255, 0.3),
+                inset 0 -4px 8px rgba(244, 63, 94, 0.3),
+                0 0 25px rgba(244, 63, 94, 0.4);
+        }
+
+        .bubble.crossed {
+            background: rgba(255, 255, 255, 0.015);
+            border: 1.5px dashed rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.18);
+            cursor: not-allowed;
+            backdrop-filter: blur(4px);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .bubble.crossed::after {
+            display: none; /* Hide highlight when bubble is broken/popped */
+        }
+
+        /* Bubble Highlights on step iterations */
+        .bubble.counting {
+            transform: scale(1.24) translateY(-3px) !important;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), rgba(56, 189, 248, 0.25) 40%, rgba(56, 189, 248, 0.65) 85%) !important;
+            border-color: #e0f2fe !important;
+            color: #fff !important;
+            box-shadow: 
+                0 15px 30px rgba(56, 189, 248, 0.6),
+                inset 0 4px 8px rgba(255, 255, 255, 0.45),
+                0 0 30px rgba(56, 189, 248, 0.75) !important;
+            z-index: 20;
+        }
+
+        .bubble.filled.counting {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), rgba(244, 63, 94, 0.25) 40%, rgba(244, 63, 94, 0.68) 85%) !important;
+            border-color: #fda4af !important;
+            color: #fff !important;
+            box-shadow: 
+                0 15px 30px rgba(244, 63, 94, 0.6),
+                inset 0 4px 8px rgba(255, 255, 255, 0.45),
+                0 0 30px rgba(244, 63, 94, 0.75) !important;
+        }
+
+        .bubble.target-eliminated {
+            transform: scale(1.35) !important;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), rgba(16, 185, 129, 0.25) 40%, rgba(16, 185, 129, 0.72) 85%) !important;
+            border-color: #d1fae5 !important;
+            color: #fff !important;
+            box-shadow: 
+                0 20px 40px rgba(16, 185, 129, 0.65),
+                inset 0 4px 8px rgba(255, 255, 255, 0.55),
+                0 0 35px rgba(16, 185, 129, 0.85) !important;
+            z-index: 20;
+            animation: bouncePop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes bouncePop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.42); }
+            100% { transform: scale(1.35); }
+        }
+
+        /* Step count glass beads progress panel */
+        .step-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 22px;
+            width: 100%;
+        }
+
+        .step-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-right: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .dot::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 3px;
+            width: 3px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            opacity: 0.7;
+        }
+
+        .dot.active {
+            background: var(--primary);
+            border-color: #93c5fd;
+            box-shadow: 
+                0 0 15px var(--primary),
+                inset 0 1px 2px rgba(255, 255, 255, 0.7);
+            transform: scale(1.4);
+        }
+
+        .dot.success {
+            background: var(--success);
+            border-color: #86efac;
+            box-shadow: 
+                0 0 15px var(--success),
+                inset 0 1px 2px rgba(255, 255, 255, 0.7);
+        }
+
+        /* Controls Panel */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        #status-msg {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            text-align: center;
+            min-height: 52px;
+            box-sizing: border-box;
+            color: var(--text-main);
+            line-height: 1.45;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 18px;
+            background: rgba(6, 9, 19, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        #status-msg.msg-info {
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+            border-color: rgba(56, 189, 248, 0.35);
+            box-shadow: 
+                inset 0 2px 5px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(56, 189, 248, 0.15);
+        }
+
+        #status-msg.msg-success {
+            color: var(--success);
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+            border-color: rgba(16, 185, 129, 0.35);
+            box-shadow: 
+                inset 0 2px 5px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(16, 185, 129, 0.15);
+        }
+
+        #status-msg.msg-error {
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
+            border-color: rgba(244, 63, 94, 0.35);
+            box-shadow: 
+                inset 0 2px 5px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(244, 63, 94, 0.15);
+            animation: shake 0.4s ease-in-out;
+        }
+
+        #status-msg span {
+            animation: fadeInText 0.3s ease-out;
+            display: inline-block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        @keyframes fadeInText {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .direction-buttons {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+
+        /* Pill glass buttons */
+        .btn {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            color: #f8fafc;
+            padding: 14px 20px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.3),
+                inset 0 2px 2px rgba(255, 255, 255, 0.25),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            outline: none;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transform: skewX(-25deg);
+            transition: all 0.75s ease;
+        }
+
+        .btn:hover:not(:disabled)::before {
+            left: 100%;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(129, 140, 248, 0.15) 100%);
+            border-color: rgba(56, 189, 248, 0.5);
+            color: #38bdf8;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 15px 25px rgba(56, 189, 248, 0.25),
+                inset 0 2px 3px rgba(255, 255, 255, 0.35);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: rgba(255, 255, 255, 0.01);
+            border-color: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.15);
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.4;
+        }
+
+        #btn-reset {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.06) 0%, rgba(244, 63, 94, 0.02) 100%);
+            border-color: rgba(244, 63, 94, 0.2);
+            color: #fda4af;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        #btn-reset:hover:not(:disabled) {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.2) 0%, rgba(244, 63, 94, 0.08) 100%);
+            border-color: rgba(244, 63, 94, 0.5);
+            color: #f43f5e;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 15px 25px rgba(244, 63, 94, 0.2),
+                inset 0 2px 3px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Victory Overlay Screen */
+        .victory-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 100;
+            background: rgba(6, 9, 19, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow-y: auto;
+        }
+
+        .victory-overlay.victory-active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .victory-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(35px) saturate(200%);
+            -webkit-backdrop-filter: blur(35px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 36px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 
+                0 40px 80px -20px rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35),
+                inset 0 12px 24px rgba(255, 255, 255, 0.05),
+                0 0 120px rgba(16, 185, 129, 0.15);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .victory-overlay.victory-active .victory-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .victory-trophy {
+            font-size: 4.5rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.45));
+            animation: logoFloat 4s ease-in-out infinite;
+        }
+
+        .victory-card h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 10px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .victory-card p {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin: 0 0 25px 0;
+            max-width: 320px;
+        }
+
+        .victory-stats {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 15px 25px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .v-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .v-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .v-value {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--success);
+            text-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .btn-replay {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(56, 189, 248, 0.15) 100%);
+            border: 1.5px solid rgba(16, 185, 129, 0.5);
+            box-shadow: 
+                0 15px 30px rgba(16, 185, 129, 0.15),
+                inset 0 2px 3px rgba(255, 255, 255, 0.25);
+            color: #fff;
+            padding: 15px 30px;
+            width: 100%;
+        }
+
+        .btn-replay:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.35) 0%, rgba(56, 189, 248, 0.2) 100%);
+            border-color: #10b981;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 20px 30px rgba(16, 185, 129, 0.25),
+                inset 0 2px 3px rgba(255, 255, 255, 0.35);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Dynamic Morphing Liquid Blobs -->
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+    <div class="bg-glow glow-3"></div>
+    <div class="bg-glow glow-4"></div>
+
+    <!-- Interactive Splash Intro Screen -->
+    <section class="splash-screen" id="splash-screen">
+        <div class="splash-glass-card">
+            <div class="bubble-logo">6</div>
+            <h1>6-Bubble Puzzle</h1>
+            <p class="tagline">Liquid Glass Simulator</p>
+            
+            <div class="rules-card">
+                <h3>How to Play</h3>
+                <div class="rule-item">
+                    <div class="rule-num">1</div>
+                    <div class="rule-desc">Click any active numbered bubble or the <strong>WALL</strong> to select it as your starting node.</div>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-num">2</div>
+                    <div class="rule-desc">Choose a direction: <strong>Clockwise</strong> or <strong>Counter-Clockwise</strong> to count.</div>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-num">3</div>
+                    <div class="rule-desc">The selector will count <strong>6 steps</strong> around the heptagonal ring and land.</div>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-num">4</div>
+                    <div class="rule-desc">If you land on an empty bubble, it is <strong>eliminated</strong>. Land on the Wall or a crossed bubble, and the move is wasted! Clear all 6 bubbles to win.</div>
+                </div>
+            </div>
+            
+            <button class="btn btn-start" id="btn-start">
+                <span>Begin Simulation</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            </button>
+        </div>
+    </section>
+
+    <!-- Main Game Simulator Dashboard -->
+    <main class="glass-card" id="game-card">
+        <h2 class="game-title">6-Bubble Puzzle</h2>
+        <div class="instructions">
+            Select an active bubble or the Wall, choose a direction (CW / CCW) to count up to 6. Clear all empty bubbles, but you cannot land on the Wall!
+        </div>
+
+        <!-- Dashboard Stats -->
+        <div class="stats-dashboard">
+            <div class="stat-box box-moves">
+                <div class="stat-label">Moves Taken</div>
+                <div class="stat-value" id="stat-moves">0</div>
+            </div>
+            <div class="stat-box box-cleared">
+                <div class="stat-label">Bubbles Cleared</div>
+                <div class="stat-value" id="stat-cleared">0 / 6</div>
+            </div>
+        </div>
+
+        <!-- Game Heptagonal Ring -->
+        <div class="game-container" id="ring">
+            <svg class="ring-outline" viewBox="0 0 320 320">
+                <defs>
+                    <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#38bdf8" />
+                        <stop offset="50%" stop-color="#818cf8" />
+                        <stop offset="100%" stop-color="#38bdf8" />
+                    </linearGradient>
+                    <filter id="neonGlow" x="-25%" y="-25%" width="150%" height="150%">
+                        <feGaussianBlur stdDeviation="5" result="blur" />
+                        <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
+                </defs>
+                <!-- Base pipeline slot -->
+                <path d="M 160,275 L 70,210 L 70,130 L 70,50 L 250,50 L 250,130 L 250,210 Z" 
+                      fill="none" 
+                      stroke="rgba(255, 255, 255, 0.04)" 
+                      stroke-width="7" 
+                      stroke-linecap="round"
+                      stroke-linejoin="round" />
+                <!-- Neon liquid flow pipeline -->
+                <path class="ring-flow" d="M 160,275 L 70,210 L 70,130 L 70,50 L 250,50 L 250,130 L 250,210 Z" 
+                      fill="none" 
+                      stroke="url(#flowGradient)" 
+                      stroke-width="3.5" 
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      filter="url(#neonGlow)" />
+            </svg>
+            <!-- Canvas overlay for glass popping particles -->
+            <canvas id="particle-canvas" width="320" height="320" style="position: absolute; top: 0; left: 0; pointer-events: none; z-index: 15;"></canvas>
+        </div>
+
+        <!-- Step Counter visual dots -->
+        <div class="step-progress">
+            <span class="step-label">Step Count:</span>
+            <div class="dot" id="dot-1"></div>
+            <div class="dot" id="dot-2"></div>
+            <div class="dot" id="dot-3"></div>
+            <div class="dot" id="dot-4"></div>
+            <div class="dot" id="dot-5"></div>
+            <div class="dot" id="dot-6"></div>
+        </div>
+
+        <!-- Controls panel -->
+        <div class="controls">
+            <div id="status-msg" class="msg-info"><span>Click a bubble or the Wall to start your move!</span></div>
+            <div class="direction-buttons">
+                <button class="btn" id="btn-cw" disabled>Clockwise ↻</button>
+                <button class="btn" id="btn-ccw" disabled>Counter-Clockwise ↺</button>
+            </div>
+            <button class="btn" id="btn-reset">Reset Board</button>
+        </div>
+    </main>
+
+    <!-- Victory Overlay Screen -->
+    <div class="victory-overlay" id="victory-screen">
+        <div class="victory-card">
+            <div class="victory-trophy">🏆</div>
+            <h2>Simulation Complete</h2>
+            <p>Victory! You successfully cleared all 6 bubbles with logic and precision.</p>
+            <div class="victory-stats">
+                <div class="v-stat">
+                    <span class="v-label">Total Moves</span>
+                    <span class="v-value" id="victory-moves">0</span>
+                </div>
+            </div>
+            <button class="btn btn-replay" id="btn-replay">Restart Simulator</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        // Position 0 is Filled (Wall). Positions 1-6 are Empty.
+        let bubblesState = [
+            { id: 0, type: 'filled', label: 'WALL' },
+            { id: 1, type: 'empty', label: '1' },
+            { id: 2, type: 'empty', label: '2' },
+            { id: 3, type: 'empty', label: '3' },
+            { id: 4, type: 'empty', label: '4' },
+            { id: 5, type: 'empty', label: '5' },
+            { id: 6, type: 'empty', label: '6' }
+        ];
+
+        let selectedBubbleId = null;
+        let isAnimating = false;
+        let movesCount = 0;
+        let clearedCount = 0;
+
+        const splashScreen = document.getElementById('splash-screen');
+        const btnStart = document.getElementById('btn-start');
+        const gameCard = document.getElementById('game-card');
+
+        const ring = document.getElementById('ring');
+        const btnCw = document.getElementById('btn-cw');
+        const btnCcw = document.getElementById('btn-ccw');
+        const btnReset = document.getElementById('btn-reset');
+        const statusMsg = document.getElementById('status-msg');
+        
+        const movesStat = document.getElementById('stat-moves');
+        const clearedStat = document.getElementById('stat-cleared');
+
+        const victoryScreen = document.getElementById('victory-screen');
+        const victoryMoves = document.getElementById('victory-moves');
+        const btnReplay = document.getElementById('btn-replay');
+
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        // Coordinates map based on index in bubblesState (0: Wall, 1-3: Left col, 4-6: Right col)
+        const positions = [
+            { x: 160, y: 275 }, // 0 (WALL)
+            { x: 70, y: 210 },  // 1
+            { x: 70, y: 130 },  // 2
+            { x: 70, y: 50 },   // 3
+            { x: 250, y: 50 },  // 4
+            { x: 250, y: 130 }, // 5
+            { x: 250, y: 210 }  // 6
+        ];
+
+        // Transition Splash -> Game Dashboard
+        btnStart.addEventListener('click', () => {
+            splashScreen.classList.add('splash-exit');
+            setTimeout(() => {
+                gameCard.style.display = 'flex';
+                // Trigger reflow to let transition work
+                gameCard.offsetHeight;
+                gameCard.classList.add('active');
+            }, 300);
+        });
+
+        // HTML5 Canvas Glass Particle System
+        class GlassParticle {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                // random velocity spray
+                this.vx = (Math.random() - 0.5) * 7;
+                this.vy = (Math.random() - 0.5) * 7 - Math.random() * 2.5; 
+                this.radius = Math.random() * 4.5 + 1.5;
+                this.alpha = 1.0;
+                this.decay = Math.random() * 0.025 + 0.015;
+                
+                // Color configuration matching the event type
+                if (type === 'success') {
+                    // green glowing droplets
+                    this.color = '16, 185, 129';
+                } else if (type === 'filled') {
+                    // crimson droplets
+                    this.color = '244, 63, 94';
+                } else if (type === 'empty') {
+                    // cyan droplets
+                    this.color = '56, 189, 248';
+                } else {
+                    // white shards
+                    this.color = '255, 255, 255';
+                }
+
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.15;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.08; // mild gravity
+                this.alpha -= this.decay;
+                this.rotation += this.rotationSpeed;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.globalAlpha = this.alpha;
+                
+                // Frosted translucent fill
+                ctx.fillStyle = `rgba(${this.color}, ${this.alpha * 0.7})`;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${this.alpha * 0.4})`;
+                ctx.lineWidth = 1.0;
+                
+                ctx.beginPath();
+                if (Math.random() > 0.4) {
+                    // Draw a little organic shard shape
+                    ctx.moveTo(0, -this.radius);
+                    ctx.lineTo(this.radius * 0.7, 0);
+                    ctx.lineTo(0, this.radius);
+                    ctx.lineTo(-this.radius * 0.7, 0);
+                } else {
+                    // Draw circular bead
+                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                }
+                ctx.fill();
+                ctx.stroke();
+                
+                // Small glass specular dot
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha * 0.95})`;
+                ctx.beginPath();
+                ctx.arc(-this.radius * 0.3, -this.radius * 0.3, this.radius * 0.22, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        function spawnGlassParticles(x, y, type) {
+            const count = type === 'success' ? 32 : 12;
+            for (let i = 0; i < count; i++) {
+                particles.push(new GlassParticle(x, y, type));
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles = particles.filter(p => p.alpha > 0);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        // Start animation loop
+        requestAnimationFrame(animateParticles);
+
+        // Animated status message handler matching liquid glass aesthetics
+        function showStatus(text, type = 'info') {
+            statusMsg.className = '';
+            statusMsg.offsetHeight; // force reflow
+            statusMsg.className = `msg-${type}`;
+            statusMsg.innerHTML = `<span>${text}</span>`;
+        }
+
+        // Render Physical Layout on the Ring without destructive recreation
+        function createBoard() {
+            bubblesState.forEach((bubble, index) => {
+                let div = ring.querySelector(`[data-id='${bubble.id}']`);
+                if (!div) {
+                    div = document.createElement('div');
+                    div.classList.add('bubble');
+                    div.dataset.id = bubble.id;
+                    const pos = positions[index];
+                    div.style.left = `${pos.x - 28}px`;
+                    div.style.top = `${pos.y - 28}px`;
+                    div.addEventListener('click', () => handleBubbleClick(bubble));
+                    ring.appendChild(div);
+                }
+
+                // Smoothly update class states to avoid flicker and retain idle float timing
+                div.className = 'bubble';
+                div.classList.add(bubble.type);
+                div.innerText = bubble.label;
+
+                if (selectedBubbleId === bubble.id && !isAnimating) {
+                    div.classList.add('counting');
+                }
+            });
+            
+            updateStatsDisplay();
+        }
+
+        function handleBubbleClick(bubble) {
+            if (isAnimating) return;
+            if (bubble.type === 'crossed') {
+                showStatus("You cannot start on a bubble that is already crossed out!", "error");
+                return;
+            }
+
+            selectedBubbleId = bubble.id;
+            if (bubble.type === 'filled') {
+                showStatus(`Selected Wall. Now choose a direction.`, "info");
+            } else {
+                showStatus(`Selected Bubble ${bubble.label}. Now choose a direction.`, "info");
+            }
+            
+            // Highlight selected bubble
+            document.querySelectorAll('.bubble').forEach(el => el.classList.remove('counting'));
+            const currentEl = document.querySelector(`[data-id='${selectedBubbleId}']`);
+            if (currentEl) currentEl.classList.add('counting');
+
+            // Reset animation dot display to showing 1 dot active
+            resetDots();
+            setDotActive(1, true);
+
+            btnCw.disabled = false;
+            btnCcw.disabled = false;
+        }
+
+        function updateStatsDisplay() {
+            movesStat.innerText = movesCount;
+            clearedStat.innerText = `${clearedCount} / 6`;
+        }
+
+        function resetDots() {
+            for (let i = 1; i <= 6; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                if (dot) {
+                    dot.className = 'dot';
+                }
+            }
+        }
+
+        function setDotActive(index, active, success = false) {
+            const dot = document.getElementById(`dot-${index}`);
+            if (dot) {
+                dot.className = 'dot';
+                if (active) dot.classList.add('active');
+                if (success) dot.classList.add('success');
+            }
+        }
+
+        // Execution of counting logic
+        async function runMove(direction) {
+            isAnimating = true;
+            btnCw.disabled = true;
+            btnCcw.disabled = true;
+            
+            movesCount++;
+            updateStatsDisplay();
+
+            let currentStepIndex = bubblesState.findIndex(b => b.id === selectedBubbleId);
+            let stepsCounted = 1; 
+
+            // Highlight initial step & progress dot
+            resetDots();
+            updateVisualHighlight(bubblesState[currentStepIndex].id, 'counting');
+            setDotActive(1, true);
+            
+            // Initial mini splash sparkle
+            let initialPos = positions[currentStepIndex];
+            spawnGlassParticles(initialPos.x, initialPos.y, bubblesState[currentStepIndex].type);
+            await sleep(400);
+
+            // Step loop for 6 counts
+            while (stepsCounted < 6) {
+                let nextIndex = currentStepIndex + direction;
+
+                // Circular handling loop-around logic
+                if (nextIndex >= bubblesState.length) nextIndex = 0;
+                if (nextIndex < 0) nextIndex = bubblesState.length - 1;
+
+                currentStepIndex = nextIndex;
+                stepsCounted++;
+
+                // Visual tracking animation updates
+                clearHighlights();
+                updateVisualHighlight(bubblesState[currentStepIndex].id, 'counting');
+                
+                // Update progress dots
+                resetDots();
+                for (let i = 1; i <= stepsCounted; i++) {
+                    setDotActive(i, true);
+                }
+                
+                // Spawn small sparkle trace particle puffs on each step
+                let pos = positions[currentStepIndex];
+                spawnGlassParticles(pos.x, pos.y, bubblesState[currentStepIndex].type);
+
+                showStatus(`Counting... Step ${stepsCounted}/6`, "info");
+                await sleep(500);
+            }
+
+            // Landing logic processing
+            const landingBubble = bubblesState[currentStepIndex];
+            const landingPos = positions[currentStepIndex];
+            
+            if (landingBubble.type === 'empty') {
+                landingBubble.type = 'crossed';
+                clearedCount++;
+                
+                // Color all progress dots as success
+                for (let i = 1; i <= 6; i++) {
+                    setDotActive(i, false, true);
+                }
+
+                updateVisualHighlight(landingBubble.id, 'target-eliminated');
+                
+                // Large Emerald Glass explosion particles!
+                spawnGlassParticles(landingPos.x, landingPos.y, 'success');
+                showStatus(`Success! Bubble ${landingBubble.label} has been eliminated.`, "success");
+            } else if (landingBubble.type === 'filled') {
+                // Crimson glass droplet splash
+                spawnGlassParticles(landingPos.x, landingPos.y, 'filled');
+                showStatus(`Bummer! Landed on the wall (${landingBubble.label}). Try again.`, "error");
+            } else {
+                // Popped grey/white glass crackle
+                spawnGlassParticles(landingPos.x, landingPos.y, 'crossed');
+                showStatus(`Bummer! Landed on an already crossed bubble (${landingBubble.label}). Try again.`, "error");
+            }
+
+            await sleep(1000);
+            clearHighlights();
+            createBoard(); // Redraw board state
+            checkGameStatus();
+            isAnimating = false;
+        }
+
+        function updateVisualHighlight(id, className) {
+            const el = document.querySelector(`[data-id='${id}']`);
+            if (el) el.classList.add(className);
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.bubble').forEach(el => {
+                el.classList.remove('counting');
+                el.classList.remove('target-eliminated');
+            });
+        }
+
+        function checkGameStatus() {
+            const remainingEmpties = bubblesState.filter(b => b.type === 'empty');
+            if (remainingEmpties.length === 0) {
+                victoryMoves.innerText = movesCount;
+                setTimeout(() => {
+                    victoryScreen.classList.add('victory-active');
+                    // Spawn celebratory emerald explosions
+                    for (let d = 0; d < 5; d++) {
+                        setTimeout(() => {
+                            spawnGlassParticles(160 + (Math.random() - 0.5) * 120, 160 + (Math.random() - 0.5) * 120, 'success');
+                        }, d * 250);
+                    }
+                }, 400);
+            }
+        }
+
+        // Helper sleep function
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Hook click handlers for CW/CCW buttons
+        btnCw.addEventListener('click', () => runMove(1));
+        btnCcw.addEventListener('click', () => runMove(-1));
+        
+        function resetGame() {
+            if (isAnimating) return;
+            bubblesState = [
+                { id: 0, type: 'filled', label: 'WALL' },
+                { id: 1, type: 'empty', label: '1' },
+                { id: 2, type: 'empty', label: '2' },
+                { id: 3, type: 'empty', label: '3' },
+                { id: 4, type: 'empty', label: '4' },
+                { id: 5, type: 'empty', label: '5' },
+                { id: 6, type: 'empty', label: '6' }
+            ];
+            selectedBubbleId = null;
+            movesCount = 0;
+            clearedCount = 0;
+            btnCw.disabled = true;
+            btnCcw.disabled = true;
+            showStatus("Board reset! Click a bubble or the Wall to start.", "info");
+            resetDots();
+            createBoard();
+        }
+
+        btnReset.addEventListener('click', resetGame);
+        
+        btnReplay.addEventListener('click', () => {
+            resetGame();
+            victoryScreen.classList.remove('victory-active');
+        });
+
+        // Initialize Game
+        createBoard();
+    </script>
+</body>
+</html>
