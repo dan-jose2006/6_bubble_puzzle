@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>6-Bubble Puzzle Simulator</title>
-    <meta name="description" content="An interactive Liquid Glass Logic Simulator puzzle game. Clear all numbered nodes in 6-step increments while avoiding landing on the Wall.">
+    <meta name="description"
+        content="An interactive Liquid Glass Logic Simulator puzzle game. Clear all numbered nodes in 6-step increments while avoiding landing on the Wall.">
     <!-- Google Fonts: Syne (headings), Plus Jakarta Sans (UI text & buttons), Inter (rules paragraphs) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
     <style>
         :root {
             --bg-color: #060913;
@@ -26,8 +30,47 @@
             --glass-shine: rgba(255, 255, 255, 0.06);
         }
 
+        /* Solar Flare Theme */
+        body.theme-solar {
+            --bg-color: #160707;
+            --primary: #f97316;
+            --primary-glow: rgba(249, 115, 22, 0.4);
+            --accent: #ef4444;
+            --accent-glow: rgba(239, 68, 68, 0.4);
+            --success: #eab308;
+            --success-glow: rgba(234, 179, 8, 0.4);
+            --text-main: #fffbeb;
+            --text-muted: #fca5a5;
+        }
+
+        /* Cyberpunk Neon Theme */
+        body.theme-cyber {
+            --bg-color: #0b020f;
+            --primary: #a855f7;
+            --primary-glow: rgba(168, 85, 247, 0.4);
+            --accent: #ec4899;
+            --accent-glow: rgba(236, 72, 153, 0.4);
+            --success: #22c55e;
+            --success-glow: rgba(34, 197, 94, 0.4);
+            --text-main: #faf5ff;
+            --text-muted: #d8b4fe;
+        }
+
+        /* Emerald Eclipse Theme */
+        body.theme-emerald {
+            --bg-color: #020f0a;
+            --primary: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.4);
+            --accent: #f43f5e;
+            --accent-glow: rgba(244, 63, 94, 0.4);
+            --success: #84cc16;
+            --success-glow: rgba(132, 204, 22, 0.4);
+            --text-main: #f0fdf4;
+            --text-muted: #a7f3d0;
+        }
+
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             display: flex;
@@ -45,13 +88,14 @@
 
         /* Ambient Liquid Background Blobs */
         .bg-glow {
-            position: absolute;
+            position: fixed;
             border-radius: 50%;
             filter: blur(140px);
             opacity: 0.25;
             pointer-events: none;
             z-index: -1;
             mix-blend-mode: screen;
+            will-change: transform, filter;
         }
 
         .glow-1 {
@@ -96,6 +140,7 @@
                 border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
                 transform: translate(0, 0) scale(1) rotate(0deg);
             }
+
             100% {
                 border-radius: 70% 30% 52% 48% / 60% 40% 60% 40%;
                 transform: translate(100px, 80px) scale(1.15) rotate(180deg);
@@ -107,6 +152,7 @@
                 border-radius: 50% 50% 30% 70% / 50% 60% 40% 50%;
                 transform: translate(0, 0) scale(1) rotate(0deg);
             }
+
             100% {
                 border-radius: 30% 70% 70% 30% / 60% 40% 60% 40%;
                 transform: translate(-120px, -80px) scale(1.2) rotate(-180deg);
@@ -118,6 +164,7 @@
                 border-radius: 60% 40% 60% 40% / 40% 60% 40% 60%;
                 transform: translate(0, 0) scale(1);
             }
+
             100% {
                 border-radius: 40% 60% 30% 70% / 60% 40% 70% 30%;
                 transform: translate(60px, -100px) scale(0.85);
@@ -129,6 +176,7 @@
                 border-radius: 50% 50% 50% 50%;
                 transform: translate(0, 0) scale(1) rotate(0deg);
             }
+
             100% {
                 border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%;
                 transform: translate(-80px, 60px) scale(1.25) rotate(90deg);
@@ -145,7 +193,7 @@
             padding: 35px 30px;
             width: 100%;
             max-width: 480px;
-            box-shadow: 
+            box-shadow:
                 0 30px 60px -15px rgba(0, 0, 0, 0.7),
                 inset 0 1px 0 rgba(255, 255, 255, 0.25),
                 inset 0 10px 20px rgba(255, 255, 255, 0.03),
@@ -194,7 +242,7 @@
             padding: 40px 35px;
             width: 100%;
             max-width: 480px;
-            box-shadow: 
+            box-shadow:
                 0 40px 80px -20px rgba(0, 0, 0, 0.8),
                 inset 0 1px 0 rgba(255, 255, 255, 0.35),
                 inset 0 12px 24px rgba(255, 255, 255, 0.05);
@@ -211,7 +259,7 @@
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, rgba(56, 189, 248, 0.1) 40%, rgba(129, 140, 248, 0.45) 85%);
             border: 2px solid rgba(255, 255, 255, 0.45);
-            box-shadow: 
+            box-shadow:
                 0 15px 30px rgba(0, 0, 0, 0.4),
                 inset 0 6px 8px rgba(255, 255, 255, 0.35),
                 inset 0 -6px 12px rgba(129, 140, 248, 0.35),
@@ -242,8 +290,15 @@
         }
 
         @keyframes logoFloat {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(5deg); }
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-10px) rotate(5deg);
+            }
         }
 
         h1 {
@@ -334,7 +389,7 @@
             width: 100%;
             background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(129, 140, 248, 0.2) 100%);
             border: 1.5px solid rgba(56, 189, 248, 0.5);
-            box-shadow: 
+            box-shadow:
                 0 15px 30px rgba(56, 189, 248, 0.15),
                 inset 0 2px 3px rgba(255, 255, 255, 0.25);
             color: #fff;
@@ -351,7 +406,7 @@
             border-color: #38bdf8;
             color: #fff;
             transform: translateY(-3px) scale(1.02);
-            box-shadow: 
+            box-shadow:
                 0 20px 35px rgba(56, 189, 248, 0.25),
                 inset 0 2px 3px rgba(255, 255, 255, 0.4);
         }
@@ -431,14 +486,14 @@
 
         .stat-box.box-moves:hover {
             border-color: rgba(56, 189, 248, 0.45);
-            box-shadow: 
+            box-shadow:
                 0 10px 20px -5px rgba(56, 189, 248, 0.15),
                 inset 0 1px 1px rgba(255, 255, 255, 0.15);
         }
 
         .stat-box.box-cleared:hover {
             border-color: rgba(16, 185, 129, 0.45);
-            box-shadow: 
+            box-shadow:
                 0 10px 20px -5px rgba(16, 185, 129, 0.15),
                 inset 0 1px 1px rgba(255, 255, 255, 0.15);
         }
@@ -542,16 +597,46 @@
             animation: floatBubble 6s ease-in-out infinite;
         }
 
-        .bubble:nth-child(2) { animation-delay: -0.5s; animation-duration: 5.5s; }
-        .bubble:nth-child(3) { animation-delay: -1.2s; animation-duration: 6.2s; }
-        .bubble:nth-child(4) { animation-delay: -2.0s; animation-duration: 5.8s; }
-        .bubble:nth-child(5) { animation-delay: -2.8s; animation-duration: 6.5s; }
-        .bubble:nth-child(6) { animation-delay: -3.5s; animation-duration: 5.2s; }
-        .bubble:nth-child(7) { animation-delay: -4.2s; animation-duration: 6.0s; }
+        .bubble:nth-child(2) {
+            animation-delay: -0.5s;
+            animation-duration: 5.5s;
+        }
+
+        .bubble:nth-child(3) {
+            animation-delay: -1.2s;
+            animation-duration: 6.2s;
+        }
+
+        .bubble:nth-child(4) {
+            animation-delay: -2.0s;
+            animation-duration: 5.8s;
+        }
+
+        .bubble:nth-child(5) {
+            animation-delay: -2.8s;
+            animation-duration: 6.5s;
+        }
+
+        .bubble:nth-child(6) {
+            animation-delay: -3.5s;
+            animation-duration: 5.2s;
+        }
+
+        .bubble:nth-child(7) {
+            animation-delay: -4.2s;
+            animation-duration: 6.0s;
+        }
 
         @keyframes floatBubble {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-4px) scale(1.02); }
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(-4px) scale(1.02);
+            }
         }
 
         /* Bubble Types */
@@ -559,7 +644,7 @@
             background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.18), rgba(56, 189, 248, 0.08) 45%, rgba(56, 189, 248, 0.38) 90%);
             border: 1.5px solid rgba(56, 189, 248, 0.55);
             color: #e0f2fe;
-            box-shadow: 
+            box-shadow:
                 0 10px 22px rgba(0, 0, 0, 0.45),
                 inset 0 4px 6px rgba(255, 255, 255, 0.2),
                 inset 0 -4px 8px rgba(56, 189, 248, 0.25),
@@ -570,7 +655,7 @@
             transform: scale(1.18) translateY(-3px) !important;
             border-color: #38bdf8;
             color: #fff;
-            box-shadow: 
+            box-shadow:
                 0 15px 30px rgba(56, 189, 248, 0.35),
                 inset 0 4px 6px rgba(255, 255, 255, 0.35),
                 inset 0 -4px 8px rgba(56, 189, 248, 0.3),
@@ -582,7 +667,7 @@
             border: 1.5px solid rgba(244, 63, 94, 0.65);
             color: #ffe4e6;
             text-shadow: 0 0 6px rgba(244, 63, 94, 0.7);
-            box-shadow: 
+            box-shadow:
                 0 10px 22px rgba(244, 63, 94, 0.25),
                 inset 0 4px 6px rgba(255, 255, 255, 0.2),
                 inset 0 -4px 8px rgba(244, 63, 94, 0.25),
@@ -592,11 +677,43 @@
         .bubble.filled:hover {
             transform: scale(1.12) translateY(-2px) !important;
             border-color: #f43f5e;
-            box-shadow: 
+            box-shadow:
                 0 15px 28px rgba(244, 63, 94, 0.35),
                 inset 0 4px 6px rgba(255, 255, 255, 0.3),
                 inset 0 -4px 8px rgba(244, 63, 94, 0.3),
                 0 0 25px rgba(244, 63, 94, 0.4);
+        }
+
+        .bubble.shielded {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.25), rgba(245, 158, 11, 0.1) 45%, rgba(245, 158, 11, 0.55) 90%);
+            border: 2px solid rgba(245, 158, 11, 0.75);
+            color: #fef3c7;
+            text-shadow: 0 0 8px rgba(245, 158, 11, 0.85);
+            box-shadow:
+                0 10px 22px rgba(245, 158, 11, 0.35),
+                inset 0 4px 6px rgba(255, 255, 255, 0.25),
+                inset 0 -4px 8px rgba(245, 158, 11, 0.3),
+                0 0 20px rgba(245, 158, 11, 0.25);
+        }
+
+        .bubble.shielded:hover {
+            transform: scale(1.15) translateY(-3px) !important;
+            border-color: #f59e0b;
+            box-shadow:
+                0 15px 30px rgba(245, 158, 11, 0.45),
+                inset 0 4px 6px rgba(255, 255, 255, 0.35),
+                inset 0 -4px 8px rgba(245, 158, 11, 0.35),
+                0 0 30px rgba(245, 158, 11, 0.5);
+        }
+
+        .bubble.shielded.counting {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), rgba(245, 158, 11, 0.25) 40%, rgba(245, 158, 11, 0.75) 85%) !important;
+            border-color: #fef3c7 !important;
+            color: #fff !important;
+            box-shadow:
+                0 15px 30px rgba(245, 158, 11, 0.7),
+                inset 0 4px 8px rgba(255, 255, 255, 0.45),
+                0 0 35px rgba(245, 158, 11, 0.8) !important;
         }
 
         .bubble.crossed {
@@ -609,7 +726,8 @@
         }
 
         .bubble.crossed::after {
-            display: none; /* Hide highlight when bubble is broken/popped */
+            display: none;
+            /* Hide highlight when bubble is broken/popped */
         }
 
         /* Bubble Highlights on step iterations */
@@ -618,7 +736,7 @@
             background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), rgba(56, 189, 248, 0.25) 40%, rgba(56, 189, 248, 0.65) 85%) !important;
             border-color: #e0f2fe !important;
             color: #fff !important;
-            box-shadow: 
+            box-shadow:
                 0 15px 30px rgba(56, 189, 248, 0.6),
                 inset 0 4px 8px rgba(255, 255, 255, 0.45),
                 0 0 30px rgba(56, 189, 248, 0.75) !important;
@@ -629,7 +747,7 @@
             background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), rgba(244, 63, 94, 0.25) 40%, rgba(244, 63, 94, 0.68) 85%) !important;
             border-color: #fda4af !important;
             color: #fff !important;
-            box-shadow: 
+            box-shadow:
                 0 15px 30px rgba(244, 63, 94, 0.6),
                 inset 0 4px 8px rgba(255, 255, 255, 0.45),
                 0 0 30px rgba(244, 63, 94, 0.75) !important;
@@ -640,7 +758,7 @@
             background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), rgba(16, 185, 129, 0.25) 40%, rgba(16, 185, 129, 0.72) 85%) !important;
             border-color: #d1fae5 !important;
             color: #fff !important;
-            box-shadow: 
+            box-shadow:
                 0 20px 40px rgba(16, 185, 129, 0.65),
                 inset 0 4px 8px rgba(255, 255, 255, 0.55),
                 0 0 35px rgba(16, 185, 129, 0.85) !important;
@@ -649,9 +767,17 @@
         }
 
         @keyframes bouncePop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.42); }
-            100% { transform: scale(1.35); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.42);
+            }
+
+            100% {
+                transform: scale(1.35);
+            }
         }
 
         /* Step count glass beads progress panel */
@@ -699,7 +825,7 @@
         .dot.active {
             background: var(--primary);
             border-color: #93c5fd;
-            box-shadow: 
+            box-shadow:
                 0 0 15px var(--primary),
                 inset 0 1px 2px rgba(255, 255, 255, 0.7);
             transform: scale(1.4);
@@ -708,7 +834,7 @@
         .dot.success {
             background: var(--success);
             border-color: #86efac;
-            box-shadow: 
+            box-shadow:
                 0 0 15px var(--success),
                 inset 0 1px 2px rgba(255, 255, 255, 0.7);
         }
@@ -748,7 +874,7 @@
             color: var(--primary);
             text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
             border-color: rgba(56, 189, 248, 0.35);
-            box-shadow: 
+            box-shadow:
                 inset 0 2px 5px rgba(0, 0, 0, 0.3),
                 0 0 15px rgba(56, 189, 248, 0.15);
         }
@@ -757,7 +883,7 @@
             color: var(--success);
             text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
             border-color: rgba(16, 185, 129, 0.35);
-            box-shadow: 
+            box-shadow:
                 inset 0 2px 5px rgba(0, 0, 0, 0.3),
                 0 0 15px rgba(16, 185, 129, 0.15);
         }
@@ -766,7 +892,7 @@
             color: var(--accent);
             text-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
             border-color: rgba(244, 63, 94, 0.35);
-            box-shadow: 
+            box-shadow:
                 inset 0 2px 5px rgba(0, 0, 0, 0.3),
                 0 0 15px rgba(244, 63, 94, 0.15);
             animation: shake 0.4s ease-in-out;
@@ -778,14 +904,31 @@
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-6px); }
-            75% { transform: translateX(6px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-6px);
+            }
+
+            75% {
+                transform: translateX(6px);
+            }
         }
 
         @keyframes fadeInText {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .direction-buttons {
@@ -809,7 +952,7 @@
             border-radius: 100px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-            box-shadow: 
+            box-shadow:
                 0 10px 20px rgba(0, 0, 0, 0.3),
                 inset 0 2px 2px rgba(255, 255, 255, 0.25),
                 inset 0 -2px 4px rgba(0, 0, 0, 0.2);
@@ -843,7 +986,7 @@
             border-color: rgba(56, 189, 248, 0.5);
             color: #38bdf8;
             transform: translateY(-2px);
-            box-shadow: 
+            box-shadow:
                 0 15px 25px rgba(56, 189, 248, 0.25),
                 inset 0 2px 3px rgba(255, 255, 255, 0.35);
         }
@@ -861,6 +1004,115 @@
             opacity: 0.4;
         }
 
+        /* Custom Premium Dropdown */
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .custom-select-trigger {
+            background: rgba(6, 9, 19, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            user-select: none;
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.25),
+                inset 0 1px 1px rgba(255, 255, 255, 0.08);
+            transform: translate3d(0, 0, 0);
+        }
+
+        .custom-select-trigger:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: var(--primary);
+            box-shadow:
+                0 0 15px var(--primary-glow),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15);
+        }
+
+        .custom-select-trigger::after {
+            content: '▼';
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .custom-select-wrapper.open .custom-select-trigger::after {
+            transform: rotate(180deg);
+            color: var(--primary);
+        }
+
+        .custom-select-options {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            box-shadow:
+                0 20px 40px rgba(0, 0, 0, 0.6),
+                0 0 2px rgba(255, 255, 255, 0.2);
+            z-index: 110;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+        }
+
+        .custom-select-wrapper.open .custom-select-options {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .custom-select-option {
+            padding: 11px 16px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .custom-select-option:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .custom-select-option.selected {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Hardware acceleration fixes to eliminate all backdrop filter flickering */
+        .glass-card,
+        .splash-glass-card,
+        .victory-card,
+        .rules-card,
+        .stat-box {
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+
         #btn-reset {
             background: linear-gradient(135deg, rgba(244, 63, 94, 0.06) 0%, rgba(244, 63, 94, 0.02) 100%);
             border-color: rgba(244, 63, 94, 0.2);
@@ -874,7 +1126,7 @@
             border-color: rgba(244, 63, 94, 0.5);
             color: #f43f5e;
             transform: translateY(-2px);
-            box-shadow: 
+            box-shadow:
                 0 15px 25px rgba(244, 63, 94, 0.2),
                 inset 0 2px 3px rgba(255, 255, 255, 0.2);
         }
@@ -915,7 +1167,7 @@
             padding: 40px 30px;
             width: 100%;
             max-width: 440px;
-            box-shadow: 
+            box-shadow:
                 0 40px 80px -20px rgba(0, 0, 0, 0.8),
                 inset 0 1px 0 rgba(255, 255, 255, 0.35),
                 inset 0 12px 24px rgba(255, 255, 255, 0.05),
@@ -999,7 +1251,7 @@
         .btn-replay {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(56, 189, 248, 0.15) 100%);
             border: 1.5px solid rgba(16, 185, 129, 0.5);
-            box-shadow: 
+            box-shadow:
                 0 15px 30px rgba(16, 185, 129, 0.15),
                 inset 0 2px 3px rgba(255, 255, 255, 0.25);
             color: #fff;
@@ -1011,12 +1263,13 @@
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.35) 0%, rgba(56, 189, 248, 0.2) 100%);
             border-color: #10b981;
             transform: translateY(-2px);
-            box-shadow: 
+            box-shadow:
                 0 20px 30px rgba(16, 185, 129, 0.25),
                 inset 0 2px 3px rgba(255, 255, 255, 0.35);
         }
     </style>
 </head>
+
 <body>
 
     <!-- Dynamic Morphing Liquid Blobs -->
@@ -1031,30 +1284,38 @@
             <div class="bubble-logo">6</div>
             <h1>6-Bubble Puzzle</h1>
             <p class="tagline">Liquid Glass Simulator</p>
-            
+
             <div class="rules-card">
                 <h3>How to Play</h3>
                 <div class="rule-item">
                     <div class="rule-num">1</div>
-                    <div class="rule-desc">Click any active numbered bubble or the <strong>WALL</strong> to select it as your starting node.</div>
+                    <div class="rule-desc">Click any active numbered bubble or the <strong>WALL</strong> to select it as
+                        your starting node.</div>
                 </div>
                 <div class="rule-item">
                     <div class="rule-num">2</div>
-                    <div class="rule-desc">Choose a direction: <strong>Clockwise</strong> or <strong>Counter-Clockwise</strong> to count.</div>
+                    <div class="rule-desc">Choose a direction: <strong>Clockwise</strong> or
+                        <strong>Counter-Clockwise</strong> to count.
+                    </div>
                 </div>
                 <div class="rule-item">
                     <div class="rule-num">3</div>
-                    <div class="rule-desc">The selector will count <strong>6 steps</strong> around the heptagonal ring and land.</div>
+                    <div class="rule-desc">The selector will count <strong>6 steps</strong> around the heptagonal ring
+                        and land.</div>
                 </div>
                 <div class="rule-item">
                     <div class="rule-num">4</div>
-                    <div class="rule-desc">If you land on an empty bubble, it is <strong>eliminated</strong>. Land on the Wall or a crossed bubble, and the move is wasted! Clear all 6 bubbles to win.</div>
+                    <div class="rule-desc">If you land on an empty bubble, it is <strong>eliminated</strong>. Land on
+                        the Wall or a crossed bubble, and the move is wasted! Clear all 6 bubbles to win.</div>
                 </div>
             </div>
-            
+
             <button class="btn btn-start" id="btn-start">
                 <span>Begin Simulation</span>
-                <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                <svg class="arrow-icon" viewBox="0 0 24 24">
+                    <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round" fill="none" />
+                </svg>
             </button>
         </div>
     </section>
@@ -1063,18 +1324,61 @@
     <main class="glass-card" id="game-card">
         <h2 class="game-title">6-Bubble Puzzle</h2>
         <div class="instructions">
-            Select an active bubble or the Wall, choose a direction (CW / CCW) to count up to 6. Clear all empty bubbles, but you cannot land on the Wall!
+            Select an active bubble or the Wall, choose a direction (CW / CCW) to count up to 6. Clear all empty
+            bubbles, but you cannot land on the Wall!
+        </div>
+
+        <!-- Selector Controls -->
+        <div class="selector-row"
+            style="display: flex; gap: 10px; width: 100%; margin-bottom: 20px; justify-content: space-between;">
+            <div class="control-select-group"
+                style="flex: 1; display: flex; flex-direction: column; gap: 6px; position: relative;">
+                <label
+                    style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.8px;">Level
+                    Select</label>
+                <div class="custom-select-wrapper" id="level-select-wrapper">
+                    <div class="custom-select-trigger" id="level-select-trigger">Lvl 1: Warmup Heptagon</div>
+                    <div class="custom-select-options">
+                        <div class="custom-select-option selected" data-value="1">Lvl 1: Warmup Heptagon</div>
+                        <div class="custom-select-option" data-value="2">Lvl 2: Double Obstacle</div>
+                        <div class="custom-select-option" data-value="3">Lvl 3: Five-Step Flow</div>
+                        <div class="custom-select-option" data-value="4">Lvl 4: Shielded Core</div>
+                        <div class="custom-select-option" data-value="5">Lvl 5: The Gauntlet</div>
+                    </div>
+                </div>
+            </div>
+            <div class="control-select-group"
+                style="flex: 1; display: flex; flex-direction: column; gap: 6px; position: relative;">
+                <label
+                    style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.8px;">Visual
+                    Theme</label>
+                <div class="custom-select-wrapper" id="theme-select-wrapper">
+                    <div class="custom-select-trigger" id="theme-select-trigger">Liquid Glass</div>
+                    <div class="custom-select-options">
+                        <div class="custom-select-option selected" data-value="glass">Liquid Glass</div>
+                        <div class="custom-select-option" data-value="solar">Solar Flare</div>
+                        <div class="custom-select-option" data-value="cyber">Cyberpunk Neon</div>
+                        <div class="custom-select-option" data-value="emerald">Emerald Eclipse</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Dashboard Stats -->
-        <div class="stats-dashboard">
+        <div class="stats-dashboard" style="grid-template-columns: repeat(3, 1fr);">
             <div class="stat-box box-moves">
-                <div class="stat-label">Moves Taken</div>
+                <div class="stat-label">Moves</div>
                 <div class="stat-value" id="stat-moves">0</div>
             </div>
             <div class="stat-box box-cleared">
-                <div class="stat-label">Bubbles Cleared</div>
+                <div class="stat-label">Cleared</div>
                 <div class="stat-value" id="stat-cleared">0 / 6</div>
+            </div>
+            <div class="stat-box box-best" style="border-color: rgba(251, 191, 36, 0.15);">
+                <div class="stat-label" style="color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.25);">Best
+                    Record</div>
+                <div class="stat-value" id="stat-best"
+                    style="color: #fbbf24; text-shadow: 0 0 12px rgba(251, 191, 36, 0.45);">--</div>
             </div>
         </div>
 
@@ -1096,23 +1400,17 @@
                     </filter>
                 </defs>
                 <!-- Base pipeline slot -->
-                <path d="M 160,275 L 70,210 L 70,130 L 70,50 L 250,50 L 250,130 L 250,210 Z" 
-                      fill="none" 
-                      stroke="rgba(255, 255, 255, 0.04)" 
-                      stroke-width="7" 
-                      stroke-linecap="round"
-                      stroke-linejoin="round" />
+                <path d="M 160,275 L 70,210 L 70,130 L 70,50 L 250,50 L 250,130 L 250,210 Z" fill="none"
+                    stroke="rgba(255, 255, 255, 0.04)" stroke-width="7" stroke-linecap="round"
+                    stroke-linejoin="round" />
                 <!-- Neon liquid flow pipeline -->
-                <path class="ring-flow" d="M 160,275 L 70,210 L 70,130 L 70,50 L 250,50 L 250,130 L 250,210 Z" 
-                      fill="none" 
-                      stroke="url(#flowGradient)" 
-                      stroke-width="3.5" 
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      filter="url(#neonGlow)" />
+                <path class="ring-flow" d="M 160,275 L 70,210 L 70,130 L 70,50 L 250,50 L 250,130 L 250,210 Z"
+                    fill="none" stroke="url(#flowGradient)" stroke-width="3.5" stroke-linecap="round"
+                    stroke-linejoin="round" filter="url(#neonGlow)" />
             </svg>
             <!-- Canvas overlay for glass popping particles -->
-            <canvas id="particle-canvas" width="320" height="320" style="position: absolute; top: 0; left: 0; pointer-events: none; z-index: 15;"></canvas>
+            <canvas id="particle-canvas" width="320" height="320"
+                style="position: absolute; top: 0; left: 0; pointer-events: none; z-index: 15;"></canvas>
         </div>
 
         <!-- Step Counter visual dots -->
@@ -1133,7 +1431,12 @@
                 <button class="btn" id="btn-cw" disabled>Clockwise ↻</button>
                 <button class="btn" id="btn-ccw" disabled>Counter-Clockwise ↺</button>
             </div>
-            <button class="btn" id="btn-reset">Reset Board</button>
+            <div style="display: flex; gap: 15px; width: 100%;">
+                <button class="btn" id="btn-hint"
+                    style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(251, 191, 36, 0.02) 100%); border-color: rgba(251, 191, 36, 0.25); color: #fbbf24;">Get
+                    Hint 💡</button>
+                <button class="btn" id="btn-reset" style="margin-top: 0;">Reset Board</button>
+            </div>
         </div>
     </main>
 
@@ -1154,22 +1457,197 @@
     </div>
 
     <script>
-        // Game State
-        // Position 0 is Filled (Wall). Positions 1-6 are Empty.
-        let bubblesState = [
-            { id: 0, type: 'filled', label: 'WALL' },
-            { id: 1, type: 'empty', label: '1' },
-            { id: 2, type: 'empty', label: '2' },
-            { id: 3, type: 'empty', label: '3' },
-            { id: 4, type: 'empty', label: '4' },
-            { id: 5, type: 'empty', label: '5' },
-            { id: 6, type: 'empty', label: '6' }
-        ];
+        // Web Audio Synthesizer Class
+        class SoundSynth {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (this.ctx) return;
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    this.ctx = new AudioContextClass();
+                }
+            }
+
+            playClick() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.08);
+
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+
+            playTick() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(1000, this.ctx.currentTime);
+
+                gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            }
+
+            playPop() {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(900, now + 0.15);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+                osc.start();
+                osc.stop(now + 0.18);
+            }
+
+            playFail() {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.35);
+
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+                osc.start();
+                osc.stop(now + 0.4);
+            }
+
+            playVictory() {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+
+                    gain.gain.setValueAtTime(0.12, now + idx * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.3);
+
+                    osc.start(now + idx * 0.1);
+                    osc.stop(now + idx * 0.1 + 0.3);
+                });
+            }
+        }
+        const sfx = new SoundSynth();
+
+        // Level Configurations
+        const levels = {
+            1: {
+                stepSize: 6,
+                state: [
+                    { id: 0, type: 'filled', label: 'WALL' },
+                    { id: 1, type: 'empty', label: '1' },
+                    { id: 2, type: 'empty', label: '2' },
+                    { id: 3, type: 'empty', label: '3' },
+                    { id: 4, type: 'empty', label: '4' },
+                    { id: 5, type: 'empty', label: '5' },
+                    { id: 6, type: 'empty', label: '6' }
+                ]
+            },
+            2: {
+                stepSize: 6,
+                state: [
+                    { id: 0, type: 'filled', label: 'WALL' },
+                    { id: 1, type: 'empty', label: '1' },
+                    { id: 2, type: 'empty', label: '2' },
+                    { id: 3, type: 'filled', label: 'WALL' },
+                    { id: 4, type: 'empty', label: '4' },
+                    { id: 5, type: 'empty', label: '5' },
+                    { id: 6, type: 'empty', label: '6' }
+                ]
+            },
+            3: {
+                stepSize: 5,
+                state: [
+                    { id: 0, type: 'filled', label: 'WALL' },
+                    { id: 1, type: 'empty', label: '1' },
+                    { id: 2, type: 'empty', label: '2' },
+                    { id: 3, type: 'empty', label: '3' },
+                    { id: 4, type: 'empty', label: '4' },
+                    { id: 5, type: 'empty', label: '5' },
+                    { id: 6, type: 'empty', label: '6' }
+                ]
+            },
+            4: {
+                stepSize: 6,
+                state: [
+                    { id: 0, type: 'filled', label: 'WALL' },
+                    { id: 1, type: 'empty', label: '1' },
+                    { id: 2, type: 'empty', label: '2' },
+                    { id: 3, type: 'shielded', label: '🛡️' },
+                    { id: 4, type: 'empty', label: '4' },
+                    { id: 5, type: 'empty', label: '5' },
+                    { id: 6, type: 'empty', label: '6' }
+                ]
+            },
+            5: {
+                stepSize: 5,
+                state: [
+                    { id: 0, type: 'filled', label: 'WALL' },
+                    { id: 1, type: 'empty', label: '1' },
+                    { id: 2, type: 'shielded', label: '🛡️' },
+                    { id: 3, type: 'empty', label: '3' },
+                    { id: 4, type: 'filled', label: 'WALL' },
+                    { id: 5, type: 'empty', label: '5' },
+                    { id: 6, type: 'empty', label: '6' }
+                ]
+            }
+        };
+
+        // Game State Variables
+        let currentLevel = 1;
+        let stepSize = 6;
+        let bubblesState = [];
+        let totalTargetCount = 0;
 
         let selectedBubbleId = null;
         let isAnimating = false;
         let movesCount = 0;
-        let clearedCount = 0;
 
         const splashScreen = document.getElementById('splash-screen');
         const btnStart = document.getElementById('btn-start');
@@ -1179,8 +1657,9 @@
         const btnCw = document.getElementById('btn-cw');
         const btnCcw = document.getElementById('btn-ccw');
         const btnReset = document.getElementById('btn-reset');
+        const btnHint = document.getElementById('btn-hint');
         const statusMsg = document.getElementById('status-msg');
-        
+
         const movesStat = document.getElementById('stat-moves');
         const clearedStat = document.getElementById('stat-cleared');
 
@@ -1192,7 +1671,7 @@
         const ctx = canvas.getContext('2d');
         let particles = [];
 
-        // Coordinates map based on index in bubblesState (0: Wall, 1-3: Left col, 4-6: Right col)
+        // Coordinates map based on index in bubblesState
         const positions = [
             { x: 160, y: 275 }, // 0 (WALL)
             { x: 70, y: 210 },  // 1
@@ -1203,13 +1682,14 @@
             { x: 250, y: 210 }  // 6
         ];
 
-        // Transition Splash -> Game Dashboard
+        // Unlock audio context on start click
         btnStart.addEventListener('click', () => {
+            sfx.init();
+            sfx.playClick();
             splashScreen.classList.add('splash-exit');
             setTimeout(() => {
                 gameCard.style.display = 'flex';
-                // Trigger reflow to let transition work
-                gameCard.offsetHeight;
+                gameCard.offsetHeight; // trigger reflow
                 gameCard.classList.add('active');
             }, 300);
         });
@@ -1219,25 +1699,21 @@
             constructor(x, y, type) {
                 this.x = x;
                 this.y = y;
-                // random velocity spray
                 this.vx = (Math.random() - 0.5) * 7;
-                this.vy = (Math.random() - 0.5) * 7 - Math.random() * 2.5; 
+                this.vy = (Math.random() - 0.5) * 7 - Math.random() * 2.5;
                 this.radius = Math.random() * 4.5 + 1.5;
                 this.alpha = 1.0;
                 this.decay = Math.random() * 0.025 + 0.015;
-                
-                // Color configuration matching the event type
+
                 if (type === 'success') {
-                    // green glowing droplets
                     this.color = '16, 185, 129';
                 } else if (type === 'filled') {
-                    // crimson droplets
                     this.color = '244, 63, 94';
                 } else if (type === 'empty') {
-                    // cyan droplets
                     this.color = '56, 189, 248';
+                } else if (type === 'shielded') {
+                    this.color = '245, 158, 11';
                 } else {
-                    // white shards
                     this.color = '255, 255, 255';
                 }
 
@@ -1248,7 +1724,7 @@
             update() {
                 this.x += this.vx;
                 this.y += this.vy;
-                this.vy += 0.08; // mild gravity
+                this.vy += 0.08;
                 this.alpha -= this.decay;
                 this.rotation += this.rotationSpeed;
             }
@@ -1258,32 +1734,28 @@
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.rotation);
                 ctx.globalAlpha = this.alpha;
-                
-                // Frosted translucent fill
+
                 ctx.fillStyle = `rgba(${this.color}, ${this.alpha * 0.7})`;
                 ctx.strokeStyle = `rgba(255, 255, 255, ${this.alpha * 0.4})`;
                 ctx.lineWidth = 1.0;
-                
+
                 ctx.beginPath();
                 if (Math.random() > 0.4) {
-                    // Draw a little organic shard shape
                     ctx.moveTo(0, -this.radius);
                     ctx.lineTo(this.radius * 0.7, 0);
                     ctx.lineTo(0, this.radius);
                     ctx.lineTo(-this.radius * 0.7, 0);
                 } else {
-                    // Draw circular bead
                     ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
                 }
                 ctx.fill();
                 ctx.stroke();
-                
-                // Small glass specular dot
+
                 ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha * 0.95})`;
                 ctx.beginPath();
                 ctx.arc(-this.radius * 0.3, -this.radius * 0.3, this.radius * 0.22, 0, Math.PI * 2);
                 ctx.fill();
-                
+
                 ctx.restore();
             }
         }
@@ -1304,18 +1776,16 @@
             });
             requestAnimationFrame(animateParticles);
         }
-        // Start animation loop
         requestAnimationFrame(animateParticles);
 
-        // Animated status message handler matching liquid glass aesthetics
         function showStatus(text, type = 'info') {
             statusMsg.className = '';
-            statusMsg.offsetHeight; // force reflow
+            statusMsg.offsetHeight;
             statusMsg.className = `msg-${type}`;
             statusMsg.innerHTML = `<span>${text}</span>`;
         }
 
-        // Render Physical Layout on the Ring without destructive recreation
+        // Render Board
         function createBoard() {
             bubblesState.forEach((bubble, index) => {
                 let div = ring.querySelector(`[data-id='${bubble.id}']`);
@@ -1330,7 +1800,6 @@
                     ring.appendChild(div);
                 }
 
-                // Smoothly update class states to avoid flicker and retain idle float timing
                 div.className = 'bubble';
                 div.classList.add(bubble.type);
                 div.innerText = bubble.label;
@@ -1339,30 +1808,27 @@
                     div.classList.add('counting');
                 }
             });
-            
+
             updateStatsDisplay();
         }
 
         function handleBubbleClick(bubble) {
             if (isAnimating) return;
             if (bubble.type === 'crossed') {
+                sfx.playFail();
                 showStatus("You cannot start on a bubble that is already crossed out!", "error");
                 return;
             }
 
+            sfx.playClick();
             selectedBubbleId = bubble.id;
-            if (bubble.type === 'filled') {
-                showStatus(`Selected Wall. Now choose a direction.`, "info");
-            } else {
-                showStatus(`Selected Bubble ${bubble.label}. Now choose a direction.`, "info");
-            }
-            
-            // Highlight selected bubble
+            const bubbleName = bubble.type === 'filled' ? 'Wall' : `Bubble ${bubble.label}`;
+            showStatus(`Selected ${bubbleName}. Now choose a direction.`, "info");
+
             document.querySelectorAll('.bubble').forEach(el => el.classList.remove('counting'));
             const currentEl = document.querySelector(`[data-id='${selectedBubbleId}']`);
             if (currentEl) currentEl.classList.add('counting');
 
-            // Reset animation dot display to showing 1 dot active
             resetDots();
             setDotActive(1, true);
 
@@ -1372,11 +1838,12 @@
 
         function updateStatsDisplay() {
             movesStat.innerText = movesCount;
-            clearedStat.innerText = `${clearedCount} / 6`;
+            const currentCleared = bubblesState.filter(b => b.type === 'crossed').length;
+            clearedStat.innerText = `${currentCleared} / ${totalTargetCount}`;
         }
 
         function resetDots() {
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= stepSize; i++) {
                 const dot = document.getElementById(`dot-${i}`);
                 if (dot) {
                     dot.className = 'dot';
@@ -1393,88 +1860,157 @@
             }
         }
 
-        // Execution of counting logic
+        // BFS Solver to find shortest path
+        function getHint() {
+            function isSolved(stateArray) {
+                return !stateArray.some(b => b === 'empty' || b === 'shielded');
+            }
+
+            function serialize(stateArray) {
+                return stateArray.join(',');
+            }
+
+            const initialTypes = bubblesState.map(b => b.type);
+            if (isSolved(initialTypes)) {
+                return "The level is already cleared!";
+            }
+
+            const queue = [];
+            const visited = new Set();
+
+            queue.push({
+                types: [...initialTypes],
+                path: []
+            });
+            visited.add(serialize(initialTypes));
+
+            let iterations = 0;
+            const maxIterations = 20000;
+
+            while (queue.length > 0 && iterations < maxIterations) {
+                iterations++;
+                const { types, path } = queue.shift();
+
+                if (isSolved(types)) {
+                    return path;
+                }
+
+                for (let startIndex = 0; startIndex < 7; startIndex++) {
+                    if (types[startIndex] === 'crossed') continue;
+
+                    for (let direction of [1, -1]) {
+                        let landingIndex = (startIndex + (stepSize - 1) * direction) % 7;
+                        if (landingIndex < 0) landingIndex += 7;
+
+                        const nextTypes = [...types];
+                        const landingType = nextTypes[landingIndex];
+
+                        if (landingType === 'empty') {
+                            nextTypes[landingIndex] = 'crossed';
+                        } else if (landingType === 'shielded') {
+                            nextTypes[landingIndex] = 'empty';
+                        }
+
+                        const serialized = serialize(nextTypes);
+                        if (!visited.has(serialized)) {
+                            visited.add(serialized);
+                            queue.push({
+                                types: nextTypes,
+                                path: [...path, { startIndex, direction }]
+                            });
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        // Counting Logic
         async function runMove(direction) {
             isAnimating = true;
             btnCw.disabled = true;
             btnCcw.disabled = true;
-            
+
             movesCount++;
             updateStatsDisplay();
 
             let currentStepIndex = bubblesState.findIndex(b => b.id === selectedBubbleId);
-            let stepsCounted = 1; 
+            let stepsCounted = 1;
 
-            // Highlight initial step & progress dot
             resetDots();
             updateVisualHighlight(bubblesState[currentStepIndex].id, 'counting');
             setDotActive(1, true);
-            
-            // Initial mini splash sparkle
+
             let initialPos = positions[currentStepIndex];
             spawnGlassParticles(initialPos.x, initialPos.y, bubblesState[currentStepIndex].type);
+            sfx.playTick();
             await sleep(400);
 
-            // Step loop for 6 counts
-            while (stepsCounted < 6) {
+            while (stepsCounted < stepSize) {
                 let nextIndex = currentStepIndex + direction;
 
-                // Circular handling loop-around logic
                 if (nextIndex >= bubblesState.length) nextIndex = 0;
                 if (nextIndex < 0) nextIndex = bubblesState.length - 1;
 
                 currentStepIndex = nextIndex;
                 stepsCounted++;
 
-                // Visual tracking animation updates
                 clearHighlights();
                 updateVisualHighlight(bubblesState[currentStepIndex].id, 'counting');
-                
-                // Update progress dots
+
                 resetDots();
                 for (let i = 1; i <= stepsCounted; i++) {
                     setDotActive(i, true);
                 }
-                
-                // Spawn small sparkle trace particle puffs on each step
+
                 let pos = positions[currentStepIndex];
                 spawnGlassParticles(pos.x, pos.y, bubblesState[currentStepIndex].type);
+                sfx.playTick();
 
-                showStatus(`Counting... Step ${stepsCounted}/6`, "info");
+                showStatus(`Counting... Step ${stepsCounted}/${stepSize}`, "info");
                 await sleep(500);
             }
 
-            // Landing logic processing
             const landingBubble = bubblesState[currentStepIndex];
             const landingPos = positions[currentStepIndex];
-            
+
             if (landingBubble.type === 'empty') {
                 landingBubble.type = 'crossed';
-                clearedCount++;
-                
-                // Color all progress dots as success
-                for (let i = 1; i <= 6; i++) {
+
+                for (let i = 1; i <= stepSize; i++) {
                     setDotActive(i, false, true);
                 }
 
                 updateVisualHighlight(landingBubble.id, 'target-eliminated');
-                
-                // Large Emerald Glass explosion particles!
                 spawnGlassParticles(landingPos.x, landingPos.y, 'success');
+                sfx.playPop();
                 showStatus(`Success! Bubble ${landingBubble.label} has been eliminated.`, "success");
+            } else if (landingBubble.type === 'shielded') {
+                landingBubble.type = 'empty';
+                landingBubble.label = landingBubble.id.toString();
+
+                for (let i = 1; i <= stepSize; i++) {
+                    setDotActive(i, false, true);
+                }
+
+                updateVisualHighlight(landingBubble.id, 'target-eliminated');
+                spawnGlassParticles(landingPos.x, landingPos.y, 'shielded');
+                sfx.playPop();
+                showStatus(`Shield cracked! Bubble ${landingBubble.id} is now vulnerable.`, "success");
             } else if (landingBubble.type === 'filled') {
-                // Crimson glass droplet splash
                 spawnGlassParticles(landingPos.x, landingPos.y, 'filled');
+                sfx.playFail();
                 showStatus(`Bummer! Landed on the wall (${landingBubble.label}). Try again.`, "error");
             } else {
-                // Popped grey/white glass crackle
                 spawnGlassParticles(landingPos.x, landingPos.y, 'crossed');
+                sfx.playFail();
                 showStatus(`Bummer! Landed on an already crossed bubble (${landingBubble.label}). Try again.`, "error");
             }
 
             await sleep(1000);
             clearHighlights();
-            createBoard(); // Redraw board state
+            createBoard();
             checkGameStatus();
             isAnimating = false;
         }
@@ -1492,12 +2028,19 @@
         }
 
         function checkGameStatus() {
-            const remainingEmpties = bubblesState.filter(b => b.type === 'empty');
-            if (remainingEmpties.length === 0) {
+            const remaining = bubblesState.filter(b => b.type === 'empty' || b.type === 'shielded');
+            if (remaining.length === 0) {
+                sfx.playVictory();
                 victoryMoves.innerText = movesCount;
+
+                const best = localStorage.getItem(`best-record-lvl-${currentLevel}`);
+                if (!best || movesCount < parseInt(best)) {
+                    localStorage.setItem(`best-record-lvl-${currentLevel}`, movesCount);
+                    document.getElementById('stat-best').innerText = movesCount;
+                }
+
                 setTimeout(() => {
                     victoryScreen.classList.add('victory-active');
-                    // Spawn celebratory emerald explosions
                     for (let d = 0; d < 5; d++) {
                         setTimeout(() => {
                             spawnGlassParticles(160 + (Math.random() - 0.5) * 120, 160 + (Math.random() - 0.5) * 120, 'success');
@@ -1507,45 +2050,150 @@
             }
         }
 
-        // Helper sleep function
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        // Hook click handlers for CW/CCW buttons
-        btnCw.addEventListener('click', () => runMove(1));
-        btnCcw.addEventListener('click', () => runMove(-1));
-        
-        function resetGame() {
-            if (isAnimating) return;
-            bubblesState = [
-                { id: 0, type: 'filled', label: 'WALL' },
-                { id: 1, type: 'empty', label: '1' },
-                { id: 2, type: 'empty', label: '2' },
-                { id: 3, type: 'empty', label: '3' },
-                { id: 4, type: 'empty', label: '4' },
-                { id: 5, type: 'empty', label: '5' },
-                { id: 6, type: 'empty', label: '6' }
-            ];
+        // Load specific level
+        function loadLevel(lvlNum) {
+            const lvl = levels[lvlNum];
+            stepSize = lvl.stepSize;
+            bubblesState = JSON.parse(JSON.stringify(lvl.state));
+
+            // Sync custom select UI
+            const lvlWrapper = document.getElementById('level-select-wrapper');
+            if (lvlWrapper) {
+                const trigger = lvlWrapper.querySelector('.custom-select-trigger');
+                const selectedOption = lvlWrapper.querySelector(`.custom-select-option[data-value='${lvlNum}']`);
+                if (selectedOption && trigger) {
+                    lvlWrapper.querySelectorAll('.custom-select-option').forEach(opt => opt.classList.remove('selected'));
+                    selectedOption.classList.add('selected');
+                    trigger.innerText = selectedOption.innerText;
+                }
+            }
+
+            document.querySelector('.instructions').innerText =
+                `Select an active bubble or the Wall, choose a direction (CW / CCW) to count up to ${stepSize}. Clear all empty bubbles, but you cannot land on the Wall!`;
+
+            const progressContainer = document.querySelector('.step-progress');
+            const dots = progressContainer.querySelectorAll('.dot');
+            dots.forEach(d => d.remove());
+            for (let i = 1; i <= stepSize; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.id = `dot-${i}`;
+                const inner = document.createElement('div');
+                dot.appendChild(inner);
+                progressContainer.appendChild(dot);
+            }
+
             selectedBubbleId = null;
             movesCount = 0;
-            clearedCount = 0;
+            totalTargetCount = bubblesState.filter(b => b.type !== 'filled').length;
+
             btnCw.disabled = true;
             btnCcw.disabled = true;
-            showStatus("Board reset! Click a bubble or the Wall to start.", "info");
+
+            const best = localStorage.getItem(`best-record-lvl-${lvlNum}`);
+            document.getElementById('stat-best').innerText = best ? best : '--';
+
+            showStatus(`Level ${lvlNum} loaded! Click a bubble or the Wall to start.`, "info");
             resetDots();
             createBoard();
         }
 
+        btnCw.addEventListener('click', () => runMove(1));
+        btnCcw.addEventListener('click', () => runMove(-1));
+
+        function resetGame() {
+            if (isAnimating) return;
+            loadLevel(currentLevel);
+        }
+
         btnReset.addEventListener('click', resetGame);
-        
+
         btnReplay.addEventListener('click', () => {
             resetGame();
             victoryScreen.classList.remove('victory-active');
         });
 
-        // Initialize Game
-        createBoard();
+        // Hint Listener
+        btnHint.addEventListener('click', () => {
+            if (isAnimating) return;
+            sfx.playClick();
+            const solution = getHint();
+            if (typeof solution === 'string') {
+                showStatus(solution, "info");
+            } else if (solution && solution.length > 0) {
+                const nextMove = solution[0];
+                const bubble = bubblesState.find(b => b.id === nextMove.startIndex);
+                const bubbleName = bubble.type === 'filled' ? 'Wall' : `Bubble ${bubble.label}`;
+                const dirName = nextMove.direction === 1 ? 'Clockwise ↻' : 'Counter-Clockwise ↺';
+                showStatus(`💡 Hint: Start on <strong>${bubbleName}</strong> and count <strong>${dirName}</strong>.`, "success");
+            } else {
+                showStatus("⚠️ No solution possible from this state. Reset recommended!", "error");
+            }
+        });
+
+        // Custom select dropdown setup helper
+        function setupCustomSelect(wrapperId, onSelectCallback) {
+            const wrapper = document.getElementById(wrapperId);
+            const trigger = wrapper.querySelector('.custom-select-trigger');
+            const optionsContainer = wrapper.querySelector('.custom-select-options');
+            const options = wrapper.querySelectorAll('.custom-select-option');
+
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+                    if (w.id !== wrapperId) w.classList.remove('open');
+                });
+                wrapper.classList.toggle('open');
+                sfx.playClick();
+            });
+
+            options.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const value = option.dataset.value;
+
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+
+                    trigger.innerText = option.innerText;
+                    wrapper.classList.remove('open');
+
+                    if (onSelectCallback) {
+                        onSelectCallback(value);
+                    }
+                });
+            });
+        }
+
+        // Initialize custom selects
+        setupCustomSelect('level-select-wrapper', (val) => {
+            currentLevel = parseInt(val);
+            loadLevel(currentLevel);
+            sfx.playClick();
+        });
+
+        setupCustomSelect('theme-select-wrapper', (val) => {
+            document.body.className = '';
+            if (val !== 'glass') {
+                document.body.classList.add(`theme-${val}`);
+            }
+            sfx.playClick();
+        });
+
+        // Close dropdowns on outside click
+        window.addEventListener('click', () => {
+            document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+                w.classList.remove('open');
+            });
+        });
+
+        // Initialize Level 1 on boot
+        loadLevel(1);
     </script>
 </body>
+
 </html>
